@@ -1,0 +1,261 @@
+{
+  "info": {
+    "name": "Laboratorio 06 - API Cursos",
+    "description": "Colección inicial de pruebas para la API RESTful de cursos. Ejecutar con el servidor local en el puerto 3000.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000"
+    }
+  ],
+  "item": [
+    {
+      "name": "Consultas",
+      "item": [
+        {
+          "name": "Listar todos los cursos",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/cursos"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Estado HTTP 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('La respuesta contiene una lista', function () {",
+                  "  const body = pm.response.json();",
+                  "  pm.expect(body.status).to.eql('success');",
+                  "  pm.expect(body.data).to.be.an('array');",
+                  "  pm.expect(body.total).to.eql(body.data.length);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Filtrar cursos por 4 créditos",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/cursos?creditos=4"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Estado HTTP 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('Todos los cursos tienen 4 créditos', function () {",
+                  "  const body = pm.response.json();",
+                  "  pm.expect(body.data).to.be.an('array');",
+                  "  body.data.forEach(function (course) { pm.expect(course.creditos).to.eql(4); });",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Consultar curso ID 1",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/cursos/1"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Estado HTTP 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('Devuelve un curso', function () {",
+                  "  const body = pm.response.json();",
+                  "  pm.expect(body.data.id).to.eql(1);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Consultar curso inexistente",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/cursos/999"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Curso inexistente devuelve 404', function () { pm.response.to.have.status(404); });",
+                  "pm.test('Informa que no existe', function () {",
+                  "  pm.expect(pm.response.json().message).to.eql('Curso no encontrado');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Creación",
+      "item": [
+        {
+          "name": "Crear curso DB301",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Desarrollo Backend\",\n  \"codigo\": \"DB301\",\n  \"creditos\": 4\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{baseUrl}}/api/cursos"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Estado HTTP 201', function () { pm.response.to.have.status(201); });",
+                  "pm.test('El curso creado contiene sus campos', function () {",
+                  "  const body = pm.response.json();",
+                  "  pm.expect(body.data).to.have.property('id');",
+                  "  pm.expect(body.data).to.have.property('nombre');",
+                  "  pm.expect(body.data).to.have.property('codigo');",
+                  "  pm.expect(body.data).to.have.property('creditos');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Validar campos obligatorios",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Curso sin código\",\n  \"creditos\": 3\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{baseUrl}}/api/cursos"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Faltan campos: devuelve 400', function () { pm.response.to.have.status(400); });"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Actualización",
+      "item": [
+        {
+          "name": "Actualizar curso ID 1",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Introducción al Desarrollo Web - Actualizado\",\n  \"codigo\": \"IDW101\",\n  \"creditos\": 5\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{baseUrl}}/api/cursos/1"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Actualización devuelve 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('El curso refleja los cambios', function () {",
+                  "  const body = pm.response.json();",
+                  "  pm.expect(body.data.creditos).to.eql(5);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Eliminación",
+      "item": [
+        {
+          "name": "Eliminar curso ID 2",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": "{{baseUrl}}/api/cursos/2"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Eliminación devuelve 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('Confirma la eliminación', function () {",
+                  "  pm.expect(pm.response.json().message).to.eql('Curso eliminado correctamente');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
